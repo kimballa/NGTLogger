@@ -1,0 +1,94 @@
+2011-04-09
+
+Actisense comms dll and redistributable demo files.
+
+---------------------------------------------------------------------------------------------
+ActisenseCommsDLLFiles
+	The dll, and .lib file for compile-time linking of the dll and its required headers
+	Release notes
+	
+	Version 1.1.0.1: 
+		Important change is the redefinition of the callback functions to use __stdcall for 
+		  the function definition to allow easier integration
+		  e.g. old definition: static void CReaderDoc::CallbackFuncN2K (void* p);
+		  e.g. new definition: static void _stdcall CReaderDoc::CallbackFuncN2K (void* p);
+		  This change should make it easier to integrate the dll with managed .NET wrappers.
+	
+	Version 1.1.1.0: 
+		API_Comms:
+		  ACommsGetRxLoading & ACommsGetTxLoading added
+		  ACommsGetPortNumber & ACommsGetPortBaudrate prototypes added to API_AComms.h
+		API_Command:
+		  ACommsCommand_GetStream & ACommsCommand_GetN2KAddress
+		API_Decode:
+		  Decode data callback timeouts fixed - callbacks could be missed if timeout 
+		    callbacks were enabled
+		  Changed Timeout callback function prototype to __stdcall
+		  Changed sDecodeTag to include source stream of decoded data, and the
+		    address it came back from (if source stream was N2K it will be the N2K address)
+		EBL log file Timestamping 
+		  Now works for NMEA 0183 "!" sentences
+		  On BST sentences, timestamping occurs before DLE/STX, not between
+		N2K Queue: 
+		  Wrapped BST sentences now appear in N2K queue, as long as they have not been 
+		    captured by a "decode" callback
+	
+	Version 1.1.1.1:
+		stream_t moved to "API_Decode_Datatypes.h"
+		Fixed data corruption issue: data from one Comms handle could cause corruption
+		  in another Comms handle when more than one handle is being used, both in Tx
+		  and Rx threads.
+		  
+	Version 1.1.2.0:
+	    Added ES11_BUFFER_OVERFLOW error return by TCritialQueue Push function
+  	      (when oldest message popped off queue to make room for the new message).
+	    Reduced maximum queue size from 10000 to 2000 messages.
+
+	Version 1.1.3.0:
+        Added new Model ID definitions to Operating Mode decoding.
+
+
+---------------------------------------------------------------------------------------------
+Actisense VC Projects\ActisenseComms Demo Project
+	A fully debuggable Visual Studio project that is a true comprehensive demonstration of
+	how to use the ActisenseComms API data and command functions.
+	
+	It has been written specificately to demonstate to a developer how to use the various
+	parts of the API: core features, Information features, advanced features. By breaking
+	down the extensive API list of functions in to these groups it is hoped that the 
+	developer will only need be bothered by the level that they require.
+	
+	This should be the first 'port-of-call' for all developers wishing to get a good 
+	foundation in using the ActisenseComms API.
+
+Actisense VC Projects\CommandLine Test Project\
+	Contains a pre-built program and source files for the 'Test Project'.
+	As a mixture of demonstration and test software that uses the ActisenseComms API, this 
+	software was developed as an initial test bed for the dll functionality, and is only 
+	included now as a secondary source backup to the more professional 'Demo Project'.
+	
+	Most developers will not need to even look at this project - as the 'Demo Project' is a
+	far more approachable fully debuggable project.
+
+
+---------------------------------------------------------------------------------------------
+Other useful programs on the Actisense Website
+
+	NMEA Reader
+	
+	Is a free utility to show data coming in via an Actisense NGT-1, showing live NMEA 2000
+	PGN data from the N2K bus.  Currently, only the default list of PGNS in the NGT-1 are
+ 	supported,  A new version will be coming shortly that will allow the user to monitor 
+	different PGNs and the way they are displayed.
+
+	'NMEA Reader' also shows NMEA 0183 data when an NMEA 0183 source is connected to the 
+	serial port (e.g. safely via an Actisense USG-1).
+	
+
+	EBLReader
+	
+	Both Actisense 'NMEA Reader' and 'Demo Project' programs generate "enhanced binary log"
+	files that contain data	(file extension *.ebl).  'EBL Reader' reads and decodes these 
+	files to show NMEA 2000, NMEA 0183 and Actisense BST data, along with a useful data 
+	breakdown of each message and timestamp for each data line.
+

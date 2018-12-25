@@ -92,6 +92,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\Actisense</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ActisenseComms.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,6 +124,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\Actisense</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;ActisenseComms.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,6 +149,26 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Actisense\API_AComms.h" />
+    <ClInclude Include="..\Actisense\API_BST.h" />
+    <ClInclude Include="..\Actisense\API_Command.h" />
+    <ClInclude Include="..\Actisense\API_CommsLog.h" />
+    <ClInclude Include="..\Actisense\API_Decode.h" />
+    <ClInclude Include="..\Actisense\API_Decode_Datatypes.h" />
+    <ClInclude Include="..\Actisense\API_DLL.h" />
+    <ClInclude Include="..\Actisense\API_NMEA0183.h" />
+    <ClInclude Include="..\Actisense\API_NMEA2000.h" />
+    <ClInclude Include="..\Actisense\ARLBaudCodes.h" />
+    <ClInclude Include="..\Actisense\ARLErrorCodes.h" />
+    <ClInclude Include="..\Actisense\BEMProtocolEnums.h" />
+    <ClInclude Include="..\Actisense\BSTDatatypes.h" />
+    <ClInclude Include="..\Actisense\ExcelTime.h" />
+    <ClInclude Include="..\Actisense\LibBSTTypes.h" />
+    <ClInclude Include="..\Actisense\NMEA0183_Datatypes.h" />
+    <ClInclude Include="..\Actisense\NMEA2000_Datatypes.h" />
+    <ClInclude Include="..\Actisense\TypeDefs.h" />
+    <ClInclude Include="..\Actisense\TypeDefs_WIN32.h" />
+    <ClInclude Include="NGTLogger.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
