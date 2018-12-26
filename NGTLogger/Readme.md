@@ -1,40 +1,30 @@
-========================================================================
-    CONSOLE APPLICATION : NGTLogger Project Overview
-========================================================================
+NGTLogger
+=========
 
-AppWizard has created this NGTLogger application for you.
+This Win32 console application logs NMEA2000 datagrams from an NMEA2000 network,
+as captured by the Actisense NGT-1. The application uses Actisense's NGT-1
+SDK to interface with the NMEA2K network.
 
-This file contains a summary of what you will find in each of the files that
-make up your NGTLogger application.
+* Compile in visual studio
+* Connect to NGT-1
+* Creates csv-based logs of the raw, captured network data. You can pass
+  a filename to the CLI program to use, or it will pick an unused filename
+  based on today's date to use if none is provided.
 
+File format
+-----------
 
-NGTLogger.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard.
-    It contains information about the version of Visual C++ that generated the file, and
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
+Each NMEA2000 record is on a single line of a text file, like the one as follows:
+```
+2018-12-25 16:21:10.994, 7, 65313, 3, 255, 8, 13, 99, c4, 0, ff, ff, ff, ff
+```
 
-NGTLogger.vcxproj.filters
-    This is the filters file for VC++ projects generated using an Application Wizard. 
-    It contains information about the association between the files in your project 
-    and the filters. This association is used in the IDE to show grouping of files with
-    similar extensions under a specific node (for e.g. ".cpp" files are associated with the
-    "Source Files" filter).
+The comma-delimited fields are:
 
-NGTLogger.cpp
-    This is the main application source file.
-
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
-
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named NGTLogger.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-/////////////////////////////////////////////////////////////////////////////
+* Msg timestamp
+* priority (7)
+* PGN (65313)
+* src id (3)
+* dest id (255, i.e. broadcast)
+* data length (8)
+* /n/ data bytes follow...

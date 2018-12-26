@@ -479,6 +479,7 @@ int main(int argc, char **argv) {
 
   cout << "Waiting for messages." << endl;
   cout << endl << endl << "*** Press any key to quit *** " << endl << endl;
+  unsigned int totalMessages = 0;
   while (running) {
     if (isKeyPressed()) {
       cout << "Keypress detected" << endl;
@@ -516,18 +517,22 @@ int main(int argc, char **argv) {
         // Let's log it.
         // Unclear why the msg timestamps seem to be relative to curTime, not deviceStartTime.
         // But.. it works?
+        totalMessages++;
         logMessage(msg, outFile, curTime);
       }
     }
     
-    if (running) {
+    if (running && bufferLen == 0) {
       // Don't busy-wait; give the system some time to queue up more messages.
+      // If bufferLen was > 0 (i.e., we had messages) check for more immediately to avoid backlog.
       Sleep(SLEEP_TIME_MILLIS);
     }
   }
 
   clearKeypressBuffer(); // clear out any keypresses to avoid echo on next cmdline.
+
   cout << "Done!" << endl;
+  cout << "Captured " << totalMessages << " messages." << endl;
   outFile.close();
   cout << "Log recorded to " << filename << endl;
 
