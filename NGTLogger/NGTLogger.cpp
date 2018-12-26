@@ -15,7 +15,7 @@ const int ERR_OK = 0; // success return code from Actisense
 // Main thread wakes up this often (10 Hz) to check for new events.
 const int SLEEP_TIME_MILLIS = 100;
 
-map<int, string> pgnList;
+map<int, string> pgnList; // Some PGNs we care about decoding in a more descriptive way.
 void initPgns() {
   pgnList[126992] = "system time";
   pgnList[126996] = "component product info";
@@ -46,6 +46,52 @@ void initPgns() {
   pgnList[130310] = "Environment: temperature and pressure";
   pgnList[130311] = "Environment: data sources";
   pgnList[130577] = "Direction data";
+}
+
+// Return true if the file exists.
+bool fileExists(const string &filename) {
+  struct stat statBuf;
+  return (stat(filename.c_str(), &statBuf) == 0);
+}
+
+// return a (possibly) unique filename consisting of the date string and the id suffix.
+string makeFilename(const string &dateStr, int id) {
+  char fileIdBuf[24];
+  memset(fileIdBuf, 0, 24);
+  _itoa_s(id, fileIdBuf, 10);
+  string fileIdStr(fileIdBuf);
+
+  return dateStr + "-" + fileIdStr + ".csv";
+}
+
+// return an output filename, specified by the user on argv, or make up a unique one if not specified.
+string getOutputFilename(int argc, char **argv) {
+  if (argc >= 2) {
+    // User has provided a filename.
+    return string(argv[1]);
+  }
+
+  // Make up our own filename. Format will be yyyy-mm-dd-<n>.csv
+  // We'll pick a unique 'n' suffix by checking for existing files.
+  time_t curTime;
+  time(&curTime);
+  const char *DATE_FMT = "%Y-%m-%d";
+  const int TIMESTAMP_STR_LEN = 256;
+  struct tm timeinfo;
+  localtime_s(&timeinfo, &curTime);
+  char timestamp_str[TIMESTAMP_STR_LEN];
+  memset(timestamp_str, 0, TIMESTAMP_STR_LEN);
+  strftime(timestamp_str, TIMESTAMP_STR_LEN - 1, DATE_FMT, &timeinfo);
+  string dateStr(timestamp_str);
+
+  int fileId = 0;
+  string filename = makeFilename(dateStr, fileId);
+  while (fileExists(filename)) {
+    fileId++;
+    filename = makeFilename(dateStr, fileId);
+  }
+
+  return filename;
 }
 
 int initNGT1(int comPort) {
@@ -291,7 +337,6 @@ string formatTime(time_t timestamp) {
   const int TIMESTAMP_STR_LEN = 256;
   struct tm timeinfo;
   localtime_s(&timeinfo, &timestamp);
-  int x = ddTotalTime;
 
   char timestamp_str[TIMESTAMP_STR_LEN];
   memset(timestamp_str, 0, TIMESTAMP_STR_LEN);
@@ -301,7 +346,7 @@ string formatTime(time_t timestamp) {
 }
 
 // We got an NMEA2000 message from the device. Log it!
-void logMessage(const sN2KMsg &msg, time_t deviceStartTime) {
+void logMessage(const sN2KMsg &msg, ofstream &outFile, time_t deviceStartTime) {
   /*
   u32 Timestamp;
   u32 PGN;
@@ -322,6 +367,8 @@ void logMessage(const sN2KMsg &msg, time_t deviceStartTime) {
   _itoa_s(tsMillis, millisStr, 10);
   timestampStr = timestampStr + "." + millisStr;
 
+  //// log to console ////
+
   cout << dec; // decimal output.
   cout << "Msg: " << msg.PGN;
   if (pgnList.count(msg.PGN) == 1) {
@@ -341,6 +388,32 @@ void logMessage(const sN2KMsg &msg, time_t deviceStartTime) {
     first = false;
   }
   cout << "]" << endl << dec;
+
+  //// log to file ////
+
+  // Each NMEA2000 record is on a single line of a text file, like the one as follows:
+  // 2018-12-25 16:21:10.994, 7, 65313, 3, 255, 8, 13, 99, c4, 0, ff, ff, ff, ff
+  // The comma-delimited fields are:
+  // * Msg timestamp
+  // * priority (7)
+  // * PGN (65313)
+  // * src id (3)
+  // * dest id (255, broadcast)
+  // * data length (8)
+  // * /n/ data bytes follow...
+  outFile << dec;
+  outFile << timestampStr << ", ";
+  outFile << (int)msg.Priority << ", ";
+  outFile << msg.PGN << ", ";
+  outFile << (int)msg.SrcAddr << ", ";
+  outFile << (int)msg.DestAddr << ", ";
+  outFile << msg.Length; // ',' added by data payload.
+  outFile << hex;
+  // Now output all the data bytes.
+  for (unsigned int i = 0; i < msg.Length; i++) {
+    outFile << ", " << (int)msg.Data[i];
+  }
+  outFile << dec << endl;
 }
 
 /**
@@ -351,6 +424,8 @@ void logMessage(const sN2KMsg &msg, time_t deviceStartTime) {
 int main(int argc, char **argv) {
   int ngtHandle;
   bool running = true;
+
+  string filename = getOutputFilename(argc, argv);
 
   initPgns();
   enumerateSerialPorts();
@@ -397,6 +472,11 @@ int main(int argc, char **argv) {
   time_t deviceStartTime = curTime - runtime; 
   cout << "Device boot time: " << formatTime(deviceStartTime) << endl;
 
+  cout << "Logging NMEA output to file " << filename << endl;
+  ofstream outFile;
+  outFile.open(filename);
+
+
   cout << "Waiting for messages." << endl;
   cout << endl << endl << "*** Press any key to quit *** " << endl << endl;
   while (running) {
@@ -436,7 +516,7 @@ int main(int argc, char **argv) {
         // Let's log it.
         // Unclear why the msg timestamps seem to be relative to curTime, not deviceStartTime.
         // But.. it works?
-        logMessage(msg, curTime); 
+        logMessage(msg, outFile, curTime);
       }
     }
     
@@ -448,7 +528,8 @@ int main(int argc, char **argv) {
 
   clearKeypressBuffer(); // clear out any keypresses to avoid echo on next cmdline.
   cout << "Done!" << endl;
-
+  outFile.close();
+  cout << "Log recorded to " << filename << endl;
 
   return 0;
 }
